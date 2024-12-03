@@ -1,0 +1,5 @@
+- Footer outside safe area view and have height
+- Create Header and Splash screen
+- Create card component
+- Using array of style object to style the card
+-
