@@ -3,27 +3,62 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { s } from "./App.style";
 import { Header } from "./components/Header/Header";
 import { CardTodo } from "./components/CardTodo/CardTodo";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Footer } from "./components/Footer/Footer";
 import { FilterModeEnum } from "./utils/enums/filterMode";
 import { TodoCountType, TodoListType, TodoType } from "./utils/types/todo";
 import { ButtonAddTodo } from "./components/ButtonAddTodo/ButtonAddTodo";
 import Dialog from "react-native-dialog";
 import uuid from "react-native-uuid";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ASYNC_STORAGE_TODO_LIST_KEY } from "./utils/constants";
 
 export default function App() {
-  const [todoList, setTodoList] = useState<TodoListType>([
-    { id: "1", title: "Working", isCompleted: true },
-    { id: "2", title: "Play football", isCompleted: false },
-    { id: "3", title: "Go to the dentist", isCompleted: true },
-  ]);
-
+  const [todoList, setTodoList] = useState<TodoListType>([]);
   const [currentFilterMode, setCurrentFilterMode] = useState<FilterModeEnum>(
     FilterModeEnum.ALL
   );
-
   const [isVisibleDialog, setIsVisibleDialog] = useState<boolean>(false);
   const [newTodoName, setNewTodoName] = useState<string>("");
+  const isFirstRender = useRef<boolean>(true);
+  const isLoadFromStorage = useRef<boolean>(false);
+
+  useEffect(() => {
+    loadTodoListFromStorage();
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender?.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (isLoadFromStorage?.current) {
+      isLoadFromStorage.current = false;
+      return;
+    }
+    saveTodoListIntoStorage();
+  }, [todoList]);
+
+  async function loadTodoListFromStorage() {
+    try {
+      const todoListString: string =
+        (await AsyncStorage.getItem(ASYNC_STORAGE_TODO_LIST_KEY)) || "[]";
+      const parsedTodoList: TodoListType = JSON.parse(todoListString) || [];
+      isLoadFromStorage.current = true;
+      setTodoList(parsedTodoList);
+    } catch (error) {
+      alert(error);
+    }
+  }
+
+  async function saveTodoListIntoStorage() {
+    try {
+      const todoListString = JSON.stringify(todoList);
+      await AsyncStorage.setItem(ASYNC_STORAGE_TODO_LIST_KEY, todoListString);
+    } catch (error) {
+      alert(error);
+    }
+  }
 
   function getFilteredTodoList() {
     switch (currentFilterMode) {
@@ -99,10 +134,7 @@ export default function App() {
       title: newTodoName,
       isCompleted: false,
     };
-    setTodoList((prevTodoList) => {
-      prevTodoList.push(newTodo);
-      return prevTodoList;
-    });
+    setTodoList((prevTodoList) => prevTodoList.concat(newTodo));
     setNewTodoName("");
     setIsVisibleDialog(false);
   }
