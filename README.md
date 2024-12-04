@@ -7,3 +7,4 @@
 - ES6 filter and reduce
 - Delete a todo
 - Add a todo
+- AsyncStorage, useEffect skip first render
