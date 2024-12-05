@@ -8,3 +8,4 @@
 - Delete a todo
 - Add a todo
 - AsyncStorage, useEffect skip first render
+- Using useRef to scroll at the bottom of the list
