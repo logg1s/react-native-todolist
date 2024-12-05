@@ -22,6 +22,7 @@ export default function App() {
   const [newTodoName, setNewTodoName] = useState<string>("");
   const isFirstRender = useRef<boolean>(true);
   const isLoadFromStorage = useRef<boolean>(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     loadTodoListFromStorage();
@@ -42,8 +43,8 @@ export default function App() {
   async function loadTodoListFromStorage() {
     try {
       const todoListString: string =
-        (await AsyncStorage.getItem(ASYNC_STORAGE_TODO_LIST_KEY)) || "[]";
-      const parsedTodoList: TodoListType = JSON.parse(todoListString) || [];
+        (await AsyncStorage.getItem(ASYNC_STORAGE_TODO_LIST_KEY)) ?? "[]";
+      const parsedTodoList: TodoListType = JSON.parse(todoListString) ?? [];
       isLoadFromStorage.current = true;
       setTodoList(parsedTodoList);
     } catch (error) {
@@ -137,6 +138,9 @@ export default function App() {
     setTodoList((prevTodoList) => prevTodoList.concat(newTodo));
     setNewTodoName("");
     setIsVisibleDialog(false);
+    setTimeout(() => {
+      scrollViewRef?.current?.scrollToEnd();
+    }, 300);
   }
   function renderAddNewTodoDialog() {
     return (
@@ -179,7 +183,7 @@ export default function App() {
           <ButtonAddTodo onPressAddTodo={() => setIsVisibleDialog(true)} />
         </View>
         <View style={s.body}>
-          <ScrollView contentContainerStyle={s.scrollView}>
+          <ScrollView contentContainerStyle={s.scrollView} ref={scrollViewRef}>
             {renderTodoList()}
           </ScrollView>
         </View>
